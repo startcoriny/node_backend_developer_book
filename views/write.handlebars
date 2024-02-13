@@ -1,0 +1,55 @@
+{{! 글쓰기 기획하기 }}
+<!-- 글쓰기 페이지임을 알려주는 상단제목, 제목을 기입하는 텍스트 박스, 이름을 기입하는 텍스트박스, 비밀번호 기입하는 텍스트박스(비밀번호가 보여선 안됌) 
+     게시글 적는 텍스트 박스, 저장을 클릭시 게시글이 저장되고 목록으로 이동, 취소를 누르면 목록으로 이동.-->
+
+<!-- 타이틀 영역 -->
+<h1>{{title}} 글작성 {{#if (eq mode "create")}}작성 {{else}} 수정 {{/if}} </h1>
+
+<div>
+  <form name="boardForm" method="post" {{#if (eq mode "create")}} action="/write" {{else}} action="/modify"{{/if}}>
+    {{#if (eq mode "modify")}}
+    <input type="hidden" name="id" value="{{post._id}}">
+    {{/if}}
+
+    <div>
+      <label>제목</label>
+      <input
+        type="text"
+        name="title"
+        placeholder="제목을 넣어주세요"
+        value="{{post.title}}"
+      />
+    </div>
+    <div>
+      <label>이름</label>
+      <input
+        type="text"
+        name="writer"
+        placeholder="이름을 넣어주세요"
+        value="{{post.writer}}"
+      />
+    </div>
+    <div>
+      <label>비밀번호</label>
+      <input
+        type="password"
+        name="password"
+        placeholder="비밀번호를 넣어주세요"
+        value=""
+      />
+    </div>
+    <div>
+      <label>본문을 입력하세요</label><br />
+      <textarea
+        placeholder="본문"
+        name="content"
+        cols="50"
+        rows="10"
+      >{{post.content}}</textarea>
+    </div>
+    <div>
+      <button type="submit">저장</button>
+      <button type="button" onclick="location.href='/'">취소</button>
+    </div>
+  </form>
+</div>

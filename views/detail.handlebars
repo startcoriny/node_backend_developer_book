@@ -1,0 +1,161 @@
+{{! 상세페이지 기획하기 }}
+<!-- 게시판 이름뒤에 게시글 제목, 작성자명, 조회수, 작성일 정보, 삭제 버튼클릭시 비밀번호가 맞으면 삭제(댓글이 하나라도 있으면 삭제 불가),
+     게시글의 내용보임, 개시글의 갯수 나옴 (n개의 댓글이 있습니다.), 댓글 갯수만큼 댓글 표시, 댓글 삭제할때 일치하면 삭제, 댓글추가하기(이름, 내용, 버튼누를시 추가)
+     목록 버튼을 누르면 게시글 목록 화면 1페이지로 이동  -->
+
+<!-- 타이틀 영역 -->
+<h1>{{title}}</h1>
+{{#with post}}
+  <h2 class="text-xl">{{title}}</h2>
+  <div>
+    작성자 :
+    <b>{{writer}}</b>
+  </div>
+
+  <div>
+    조회수:
+    {{hits}}
+    | 작성일시 :
+    {{dateString createdDt}}
+    <button onclick="modifyPost()">수정</button>
+    <button onclick="deletePost()">삭제</button>
+  </div>
+
+  <div>
+    <pre>{{content}}</pre>
+  </div>
+
+  <section>
+    <div>
+      <h3>{{lengthOfList comments}}개의 댓글이 있습니다.</h3>
+    </div>
+
+    <form method="post" action="/write-comment">
+      <input type="hidden" name="id" value="{{_id}}">
+      <div>
+        <div>
+          <input type="text" name="name" placeholder="이름" />
+          <input type="password" name="password" placeholder="비밀번호" />
+        </div>
+        <div>
+          <textarea
+            name="comment"
+            cols="40"
+            rows="3"
+            placeholder="댓글을 입력해주세요"
+          ></textarea>
+          <br />
+          <br />
+          <button>댓글 쓰기</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    {{#each comments}}
+    <div>
+      <div>
+        작성자 : <b>{{name}}</b>
+      </div>
+      <div>
+        작성일시 : {{dateString createdDt}}
+        <button onclick="deleteComment('{{idx}}')">삭제</button>
+      </div>
+    </div>
+    <div>
+      <pre>{{comment}}</pre>
+    </div>
+  {{/each}}
+  </section>
+{{/with}}
+<footer>
+  <div>
+    <a href="/">목록으로</a>
+  </div>
+</footer>
+
+<script>
+  const postOption = {
+    method:'post', 
+    headers:{'Content-Type':'application/json' 
+    } 
+  } 
+
+
+// 게시물 수정
+  async function modifyPost(){ 
+    const password = prompt('패스워드를 입력해주세요');
+
+    // 프롬프트에서 취소를 누른경우 처리
+    if(!password){
+      return;
+    }
+
+    const result = await fetch("/check-password",{
+      ...postOption,
+      body:JSON.stringify({id:"{{post._id}}",password})
+    });
+
+    const data = await result.json();
+
+    if(data.isExist){
+      document.location = "/modify/{{post._id}}"
+    }else{
+      alert('패스워드가 올바르지 않습니다.');
+    }
+  } 
+
+    const deleteOption = {
+      method:'DELETE',
+      headers:{
+        'Content-Type':'application/json',
+      },
+    }
+
+// 게시물 삭제
+  async function deletePost(){
+    const password = prompt('삭제하려면 패스워드를 입력해주세요')
+
+    if(!password){
+      return;
+    }
+
+    const result = await fetch('/delete',{
+      ...deleteOption,
+      body: JSON.stringify({id:"{{post._id}}", password})
+    });
+
+    const data = await result.json();
+    if(!data.isSuccess){
+      alert("삭제에 실패했습니다. 패스워드를 확인해주세요");
+      return;
+    }
+
+    document.location='/';
+  }
+
+// 댓글 삭제
+  async function deleteComment(idx){
+    const password = prompt("삭제하려면 패스워드를 눌러주세요");
+
+    if(!password){
+      return;
+    }
+
+// fetchAPI를 통해 Ajax 통신.
+    const result = await fetch("/delete-comment",{
+      ...deleteOption,
+      body: JSON.stringify({id:"{{post._id}}", idx, password})
+    });
+
+    const data = await result.json();
+    if(!data.isSuccess){
+      alert("삭제에 실패했습니다. 패스워드를 확인해주세요.");
+      return;
+    }
+
+    alert("삭제 성공")
+    document.location.reload();
+  }
+</script>

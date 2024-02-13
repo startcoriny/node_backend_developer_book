@@ -1,0 +1,94 @@
+{{! 메인페이지 기획하기 }}
+<!-- 게시판 제목(게시판에 대한 데이터 따로 관리, 즉 게시판의 번호 데이터 필요), 게시판의 검색기능(제목, 작성자), 글쓰기 버튼 누르면 글쓰기 페이지로 이동
+     제목 최대 100글자 입력가능, 작성자 항목 필요(인증기능이 있을시 그 기능으로 대체), 게시글 클릭해서 조회할시 조회수 올라감, 등록일 yyy.mm.dd로 표현
+     페이징 기능(기호 또는 숫자 누르면 해당 페이지로 넘어감, 한페이지에 게시글 10개, 현재 페이지 색상 다르게 표현) -->
+
+<!-- 타이틀 영역 -->
+<h1>{{title}}</h1>
+<!-- 서버에서 내려주는 변수 -->
+
+<!-- 검색어 영역 -->
+<input
+  type="text"
+  name="search"
+  id="search"
+  value="{{'search'}}"
+  size="50"
+  placeholder="검색어를 입력하세요"
+/>
+<!-- 버튼 클릭시 search변수에 검색어 데이터를 담아서 서버로 보냄. -->
+<button
+  onclick="location.href = `/?search=${document.getElementById('search').value}`"
+>검색</button>
+<br />
+
+<!-- 글쓰기 페이지 이동 링크 영역 -->
+<a href="/write">글쓰기</a>
+<br />
+
+<!-- 글목록 영역 -->
+<div>
+  <table>
+    <th>
+      <tr>
+        <th width="50%">제목</th>
+        <th>작성자</th>
+        <th>조회수</th>
+        <th>등록일</th>
+      </tr>
+    </th>
+    <tbody>
+      <!-- 게시글 데이터 표시 --> 
+      {{#each posts}} {{!-- 서버에서 home.handlebars를 그릴때 posts 변수에 게시물의 값들을 담아서 보내줌 
+                           posts는 리스트이다. posts를 반복해서 렌더링 하기 위해 each내장함수 사용.
+                           {{변수명}} 으로 객체에 접근할 수가 있음.
+                           {{post[0].title}}이 아니라 {{title}}로 접근가능--}}
+        <tr>
+          <!-- 상세 페이지 링크 -->
+          <td><a href="/detail/{{_id}}">{{title}}</a></td>
+          <td align="center">{{writer}}</td>
+          <td align="center">{{hits}}</td>
+          <!-- dateString 헬퍼 함수 사용 -->
+          <td align="center">{{dateString createdDt}}</td> {{!-- 미리 만들어둔 핸들바 커스텀 헬퍼
+                                                                 생성일시 값인 createDt는 2022-04-07T16:04:46.496Z와 같은 ISO 포맷으로 저장되어있음
+                                                                 이를 new Date(isoString).toLocaleDateString()을 사용해서 날짜만 보여주도록함 --}}
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+
+<!-- 페이징 영역 -->
+  {{#with paginator}}<!-- 페이징 영역 --> {{!-- with 내장 헬퍼함수, 주어진 데이터 컨텍스트 내에서 특정 변수를 참조할 때 사용 --}}
+                                          {{!-- paginator가 가지고 있는 변수가 10개 이기 때문에 paginator를 생략하고 사용하는게 더 간단함. 
+                                                이를 가능하게 해주는 함수가 with --}}
+
+  <a href="/?page=1&search={{@root.search}}">&lt;&lt;</a> {{!-- root.search는 with블록 안에서 search를 하는 경우 pagination.search를 참조하게 되므로
+                                                                서버가 보내준 원본의 값을 참조하기 위해 사용 --}}
+  {{#if hasPrev}}
+  <a href="/?page={{prevPage}}&search={{@root.search}}">&lt;</a> 
+
+  {{else}}
+  <a>&lt;</a>
+
+  {{/if}}
+
+  {{#each pageList}}
+  {{#if (eq . @root.paginator.page)}}
+  <a>{{.}}</a>
+
+  {{else}}
+  <a href="/?page={{.}}&search={{@root.search}}">{{.}}</a>
+
+  {{/if}}
+  {{/each}}
+
+  {{#if hasNext}}
+  <a href="/?page={{nextPage}}&search={{@root.search}}">&gt;</a>
+  {{else}}
+  <a>&gt;</a>
+  {{/if}}
+
+  <a href="/?page={{lastPage}}&search={{@root.search}}">&gt;&gt;</a>
+  {{/with}}
+</div>
